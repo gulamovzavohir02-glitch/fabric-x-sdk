@@ -211,7 +211,9 @@ func newFabloSetup(t *testing.T) *testSetup {
 	if err != nil {
 		t.Fatalf("fablo network not running (start with make start-fablo)")
 	}
-	conn.Close()
+	if err := conn.Close(); err != nil {
+		t.Fatalf("close connectivity probe: %v", err)
+	}
 
 	s := newSetup(t, "fabric", cfg)
 
@@ -272,7 +274,9 @@ func newTestCommitterSetup(t *testing.T) *testSetup {
 	if err != nil {
 		t.Fatalf("fabric-x committer not running (start with make start-x)")
 	}
-	conn.Close()
+	if err := conn.Close(); err != nil {
+		t.Fatalf("close connectivity probe: %v", err)
+	}
 
 	s := newSetup(t, "fabric-x", cfg)
 	s.supportsNotifications = true
@@ -299,7 +303,7 @@ func newSetup(t *testing.T, networkType string, cfg config) *testSetup {
 	if err != nil {
 		t.Fatalf("state.NewSqlite: %v", err)
 	}
-	t.Cleanup(func() { localDB.Close() }) //nolint:errcheck
+	t.Cleanup(func() { localDB.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 
 	capture := &captureHandler{}
 
@@ -349,7 +353,7 @@ func newSetup(t *testing.T, networkType string, cfg config) *testSetup {
 	syncDone := make(chan struct{})
 	go func() {
 		defer close(syncDone)
-		sync.Start(t.Context()) //nolint:errcheck
+		sync.Start(t.Context()) //nolint:errcheck,gosec // The test cancels and joins this background synchronizer during cleanup.
 	}()
 	t.Cleanup(func() {
 		select {
@@ -358,7 +362,7 @@ func newSetup(t *testing.T, networkType string, cfg config) *testSetup {
 			t.Error("synchronizer did not stop within 10s of its context being cancelled")
 		}
 	})
-	t.Cleanup(func() { submitter.Close() }) //nolint:errcheck
+	t.Cleanup(func() { submitter.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 
 	waitUntilSynced(t, sync, 10*time.Second)
 

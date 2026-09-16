@@ -50,7 +50,7 @@ func newTestDB(t *testing.T) *state.VersionedDB {
 	if err != nil {
 		t.Fatalf("NewSqlite: %v", err)
 	}
-	t.Cleanup(func() { db.Close() }) //nolint:errcheck
+	t.Cleanup(func() { db.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 	return db
 }
 

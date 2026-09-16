@@ -52,7 +52,7 @@ func open(path string, maxOpen, maxIdle int) (*sql.DB, error) {
 	}
 	for _, p := range pragmas {
 		if _, err = db.Exec(p); err != nil {
-			db.Close() //nolint:errcheck
+			db.Close() //nolint:errcheck,gosec // Preserve the initialization error; the DB is already unusable.
 			return nil, fmt.Errorf("set pragma %q: %w", p, err)
 		}
 	}

@@ -187,7 +187,11 @@ func TestNewSubmitter(t *testing.T) {
 		if s == nil {
 			t.Fatal("expected non-nil submitter")
 		}
-		t.Cleanup(func() { s.Close() }) //nolint:errcheck
+		t.Cleanup(func() {
+			if err := s.Close(); err != nil {
+				t.Errorf("close submitter: %v", err)
+			}
+		})
 	})
 }
 
@@ -201,7 +205,11 @@ func TestSubmitter_Submit(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewSubmitter: %v", err)
 		}
-		t.Cleanup(func() { s.Close() }) //nolint:errcheck
+		t.Cleanup(func() {
+			if err := s.Close(); err != nil {
+				t.Errorf("close submitter: %v", err)
+			}
+		})
 
 		if err := s.Submit(t.Context(), sdk.Endorsement{}); err != nil {
 			t.Fatalf("Submit: %v", err)
@@ -221,7 +229,11 @@ func TestSubmitter_Submit(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewSubmitter: %v", err)
 		}
-		t.Cleanup(func() { s.Close() }) //nolint:errcheck
+		t.Cleanup(func() {
+			if err := s.Close(); err != nil {
+				t.Errorf("close submitter: %v", err)
+			}
+		})
 
 		err = s.Submit(t.Context(), sdk.Endorsement{})
 		if err == nil || !strings.Contains(err.Error(), "package proposal") {
@@ -239,7 +251,11 @@ func TestSubmitter_Submit(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewSubmitter: %v", err)
 		}
-		t.Cleanup(func() { s.Close() }) //nolint:errcheck
+		t.Cleanup(func() {
+			if err := s.Close(); err != nil {
+				t.Errorf("close submitter: %v", err)
+			}
+		})
 
 		if err := s.Submit(t.Context(), sdk.Endorsement{}); err == nil {
 			t.Fatal("expected broadcast error")
@@ -260,7 +276,11 @@ func TestSubmitter_QuorumBroadcast(t *testing.T) {
 		if err != nil {
 			t.Fatalf("NewOrderer: %v", err)
 		}
-		t.Cleanup(func() { o.Close() }) //nolint:errcheck
+		t.Cleanup(func() {
+			if err := o.Close(); err != nil {
+				t.Errorf("close orderer: %v", err)
+			}
+		})
 		return o
 	}
 

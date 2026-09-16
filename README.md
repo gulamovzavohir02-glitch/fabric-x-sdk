@@ -14,7 +14,7 @@ This preview version can be used for testing and prototypes. It does not provide
 
 | Tool   | Version | Install                              |
 | ------ | ------- | ------------------------------------ |
-| Go     | 1.26+   | <https://go.dev/dl>                  |
+| Go     | 1.26.8+   | <https://go.dev/dl>                  |
 | Docker | 20.x+   | <https://docs.docker.com/get-docker> |
 
 ## Getting started
@@ -93,6 +93,23 @@ fabric-x-samples repo. It leans heavily on the code of this SDK.
 ## Contributing
 
 Contributions are welcome. Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before opening a pull request.
+
+Run the same static analysis and dependency vulnerability checks as CI:
+
+```sh
+make checks
+make vulncheck
+```
+
+`make checks` checks formatting, runs `go vet`, verifies license headers, and runs
+the standard `golangci-lint` linters plus `gosec`. `make vulncheck` uses
+`govulncheck` to report known vulnerabilities reachable from the SDK. Both tools
+are versioned in `go.mod` and run through `go tool`; no separate installation is
+needed. Vulnerability checks need access to the Go vulnerability database.
+
+Fix new findings before submitting a change. If a finding is intentionally
+accepted, use a narrow `//nolint:<linter>` comment with a justification rather
+than disabling the check for the project.
 
 ## License
 

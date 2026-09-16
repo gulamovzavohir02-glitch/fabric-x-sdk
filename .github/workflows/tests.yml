@@ -34,6 +34,9 @@ jobs:
       - name: Checks
         run: make checks
 
+      - name: Vulnerability check
+        run: make vulncheck
+
       - name: Run unit tests
         run: make unit-tests
 

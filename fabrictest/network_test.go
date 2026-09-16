@@ -65,7 +65,7 @@ func TestCutBlock_ConcurrentWithBroadcast(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dial orderer: %v", err)
 	}
-	t.Cleanup(func() { conn.Close() }) //nolint:errcheck
+	t.Cleanup(func() { conn.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 	client := orderer.NewAtomicBroadcastClient(conn)
 
 	const numTx = 20

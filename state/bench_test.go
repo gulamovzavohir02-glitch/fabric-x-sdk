@@ -50,7 +50,7 @@ type keyGen struct {
 }
 
 func newKeyGen(numKeys uint64) *keyGen {
-	rng := rand.New(rand.NewSource(42))
+	rng := rand.New(rand.NewSource(42)) //nolint:gosec // Reproducible benchmark data, not security-sensitive randomness.
 	return &keyGen{rng: rng, zipf: rand.NewZipf(rng, 1.2, 1.0, numKeys-1), numKeys: numKeys}
 }
 
@@ -74,7 +74,7 @@ func allBackends() []benchBackend {
 				connStr := fmt.Sprintf("file:%s/bench.db", b.TempDir())
 				write := mustNewWriteDB(b, connStr)
 				read := mustNewReadDB(b, connStr)
-				b.Cleanup(func() { write.Close(); read.Close() }) //nolint:errcheck
+				b.Cleanup(func() { write.Close(); read.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 				return write, read
 			},
 		},
@@ -86,7 +86,7 @@ func allBackends() []benchBackend {
 				connStr := fmt.Sprintf("file:%s?mode=memory&cache=shared", name)
 				write := mustNewWriteDB(b, connStr)
 				read := mustNewReadDB(b, connStr)
-				b.Cleanup(func() { write.Close(); read.Close() }) //nolint:errcheck
+				b.Cleanup(func() { write.Close(); read.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 				return write, read
 			},
 		},
@@ -221,7 +221,7 @@ func (r *report) log() {
 		}
 		fmt.Fprintln(w)
 	}
-	w.Flush()
+	w.Flush() //nolint:errcheck,gosec // The tabwriter writes only to an in-memory bytes.Buffer.
 
 	fmt.Fprintln(os.Stdout, "\n── "+r.title+" "+strings.Repeat("─", max(0, 60-len(r.title)))+buf.String())
 }
