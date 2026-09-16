@@ -64,7 +64,8 @@ func (l *MVCCValidator) codeFor(status Status) int32 {
 // It updates each transaction's Status in place and returns a txFilter
 // byte slice with one entry per transaction position, where each byte
 // indicates the validation status.
-// Returns an error (and the partially-filled txFilter) if a database error occurs.
+// Returns an error (and the partially-filled txFilter) if a database error occurs
+// or a configured validation code cannot be represented in one byte.
 func (l *MVCCValidator) Validate(block *Block) ([]byte, error) {
 	l.pendingWrites = make(map[string]struct{})
 	txFilter := make([]byte, len(block.Transactions))
@@ -91,6 +92,9 @@ func (l *MVCCValidator) Validate(block *Block) ([]byte, error) {
 		}
 
 		code := l.codeFor(status)
+		if code < 0 || code > 255 {
+			return txFilter, fmt.Errorf("validation code %d for status %v does not fit in a transaction filter byte", code, status)
+		}
 		tx.SetStatus(status, code, reason)
 		txFilter[i] = byte(code)
 

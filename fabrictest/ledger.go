@@ -176,5 +176,5 @@ func (l *ledger) close() {
 		close(ch)
 	}
 	l.subs = nil
-	l.db.Close()
+	l.db.Close() //nolint:errcheck,gosec // Best-effort cleanup of the in-memory test ledger.
 }

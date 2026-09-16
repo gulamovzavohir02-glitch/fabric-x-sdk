@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: Apache-2.0
+
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: standard
+  enable:
+    - gosec
+  settings:
+    errcheck:
+      # Console/benchmark reporting is best-effort, like errcheck's defaults.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln

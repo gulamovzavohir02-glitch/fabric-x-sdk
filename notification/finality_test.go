@@ -22,9 +22,8 @@ import (
 // controlledPeer lets tests drive what peer.Notify returns.
 // It exposes a sendEvent helper to deliver events to the running stream.
 type controlledPeer struct {
-	mu       sync.Mutex
-	proc     *notification.Processor
-	txIDsChs []chan []string // one per Notify call, in order
+	mu   sync.Mutex
+	proc *notification.Processor
 
 	// failFirst causes the first Notify call to return an error immediately.
 	failFirst bool

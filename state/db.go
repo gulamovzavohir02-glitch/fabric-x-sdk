@@ -48,7 +48,7 @@ func NewWriteDB(channel, connStr string) (*VersionedDB, error) {
 		backend: db,
 	}
 	if err := store.init(); err != nil {
-		db.Close() //nolint:errcheck
+		db.Close() //nolint:errcheck,gosec // Preserve the initialization error; the DB is already unusable.
 		return nil, err
 	}
 	return store, nil
@@ -288,6 +288,9 @@ func (db *VersionedDB) BlockNumber(ctx context.Context) (uint64, error) {
 	}
 	if !lastBlock.Valid {
 		return 0, nil
+	}
+	if lastBlock.Int64 < 0 {
+		return 0, fmt.Errorf("invalid negative block number: %d", lastBlock.Int64)
 	}
 	return uint64(lastBlock.Int64), nil
 }

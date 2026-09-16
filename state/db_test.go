@@ -24,18 +24,18 @@ func newTestDB(t *testing.T) *VersionedDB {
 	if err != nil {
 		t.Fatalf("NewSqlite: %v", err)
 	}
-	t.Cleanup(func() { db.Close() }) //nolint:errcheck
+	t.Cleanup(func() { db.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 	return db
 }
 
 // mustWrite applies a single-key write to the DB, for test setup.
-func mustWrite(t *testing.T, db *VersionedDB, ns, key string, block, tx uint64, value []byte) {
+func mustWrite(t *testing.T, db *VersionedDB, ns, key string, block uint64, tx int64, value []byte) {
 	t.Helper()
 	if err := db.UpdateWorldState(context.Background(), blocks.Block{
 		Number: block,
 		Transactions: []blocks.Transaction{{
 			ID:     "txid",
-			Number: int64(tx),
+			Number: tx,
 			Status: blocks.StatusCommitted,
 			NsRWS: []blocks.NsReadWriteSet{{
 				Namespace: ns,
@@ -125,6 +125,16 @@ func TestBlockNumber_Zero(t *testing.T) {
 	}
 	if n != 0 {
 		t.Errorf("expected 0, got %d", n)
+	}
+}
+
+func TestBlockNumber_Negative(t *testing.T) {
+	db := newTestDB(t)
+	if _, err := db.backend.ExecContext(t.Context(), "INSERT INTO channel_progress (channel, last_block) VALUES ($1, $2)", db.channel, -1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.BlockNumber(t.Context()); err == nil {
+		t.Fatal("expected negative stored block number to be rejected")
 	}
 }
 

@@ -8,6 +8,7 @@ package blocks
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	sdk "github.com/hyperledger/fabric-x-sdk"
@@ -256,6 +257,29 @@ func TestMVCCValidatorIntraBlock(t *testing.T) {
 	}
 }
 
+func TestMVCCValidatorCodeRange(t *testing.T) {
+	for _, code := range []int32{-1, 0, 255, 256} {
+		t.Run(fmt.Sprint(code), func(t *testing.T) {
+			v := newValidator(mockDB{}, false)
+			v.Codes = map[Status]int32{StatusCommitted: code}
+			block := singleTxBlock("ns", 1, nil)
+			filter, err := v.Validate(block)
+			if code < 0 || code > 255 {
+				if err == nil {
+					t.Fatal("expected out-of-range validation code to be rejected")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("Validate: %v", err)
+			}
+			if got := int32(filter[0]); got != code {
+				t.Errorf("filter code: got %d, want %d", got, code)
+			}
+		})
+	}
+}
+
 // TestMVCCValidatorCodesAndTxFilter verifies that Validate's txFilter and each
 // Transaction's RawCode/Reason are driven by the configured Codes map, and that an
 // unmapped status (including a nil Codes map) falls back to UncustomizedCode without
@@ -284,14 +308,14 @@ func TestMVCCValidatorCodesAndTxFilter(t *testing.T) {
 			t.Fatalf("Validate: unexpected error: %v", err)
 		}
 
-		if got, want := txFilter[0], byte(codes[StatusCommitted]); got != want {
+		if got, want := int32(txFilter[0]), codes[StatusCommitted]; got != want {
 			t.Errorf("txFilter[0]: got %d, want %d", got, want)
 		}
 		if got, want := block.Transactions[0].RawCode, codes[StatusCommitted]; got != want {
 			t.Errorf("tx0 RawCode: got %d, want %d", got, want)
 		}
 
-		if got, want := txFilter[1], byte(codes[StatusMVCCConflict]); got != want {
+		if got, want := int32(txFilter[1]), codes[StatusMVCCConflict]; got != want {
 			t.Errorf("txFilter[1]: got %d, want %d", got, want)
 		}
 		if got, want := block.Transactions[1].RawCode, codes[StatusMVCCConflict]; got != want {
@@ -336,7 +360,7 @@ func TestMVCCValidatorCodesAndTxFilter(t *testing.T) {
 		if got, want := block.Transactions[0].RawCode, codes[StatusUnknown]; got != want {
 			t.Errorf("RawCode: got %d, want %d", got, want)
 		}
-		if got, want := txFilter[0], byte(codes[StatusUnknown]); got != want {
+		if got, want := int32(txFilter[0]), codes[StatusUnknown]; got != want {
 			t.Errorf("txFilter[0]: got %d, want %d", got, want)
 		}
 	})

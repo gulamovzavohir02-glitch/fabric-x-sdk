@@ -111,8 +111,16 @@ func Start(ctx context.Context, namespace, networkType string, cfg Config, db1 b
 	committerpb.RegisterBlockQueryServiceServer(n.pSrv, testPeer)
 	committerpb.RegisterNotifierServer(n.pSrv, testPeer)
 
-	go n.oSrv.Serve(ordererLis)
-	go n.pSrv.Serve(peerLis)
+	go func() {
+		if err := n.oSrv.Serve(ordererLis); err != nil {
+			logger.Errorf("orderer server stopped: %v", err)
+		}
+	}()
+	go func() {
+		if err := n.pSrv.Serve(peerLis); err != nil {
+			logger.Errorf("peer server stopped: %v", err)
+		}
+	}()
 	go func() {
 		<-ctx.Done()
 		n.Stop()
@@ -127,8 +135,16 @@ func listen(port int) (net.Listener, int, error) {
 		return nil, 0, err
 	}
 	_, actualPort, err := net.SplitHostPort(lis.Addr().String())
+	if err != nil {
+		lis.Close() //nolint:errcheck,gosec // Preserve the address parsing error.
+		return nil, 0, err
+	}
 	p, err := strconv.Atoi(actualPort)
-	return lis, p, err
+	if err != nil {
+		lis.Close() //nolint:errcheck,gosec // Preserve the port parsing error.
+		return nil, 0, err
+	}
+	return lis, p, nil
 }
 
 // CutBlock cuts a new block with no transactions, advancing block height by one.

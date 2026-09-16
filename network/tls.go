@@ -103,7 +103,7 @@ func (c TLSConfig) LoadClientTLSConfig(serverName string) (*tls.Config, error) {
 		// Load CA certificates (required for both tls and mtls)
 		rootCAs := x509.NewCertPool()
 		for _, caPath := range c.CACertPaths {
-			caPEM, err := os.ReadFile(caPath)
+			caPEM, err := os.ReadFile(caPath) //nolint:gosec // CA paths are explicitly supplied by the caller in TLS configuration.
 			if err != nil {
 				return nil, fmt.Errorf("failed to read CA cert %s: %w", caPath, err)
 			}

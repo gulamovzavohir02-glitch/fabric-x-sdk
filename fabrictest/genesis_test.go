@@ -50,7 +50,7 @@ func openDeliver(t *testing.T, n *Network, start *orderer.SeekPosition) peer.Del
 	if err != nil {
 		t.Fatalf("dial peer: %v", err)
 	}
-	t.Cleanup(func() { conn.Close() }) //nolint:errcheck
+	t.Cleanup(func() { conn.Close() }) //nolint:errcheck,gosec // Best-effort test cleanup.
 
 	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	t.Cleanup(cancel)
